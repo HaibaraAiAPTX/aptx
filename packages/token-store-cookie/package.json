@@ -1,0 +1,25 @@
+{
+  "name": "@aptx/token-store-cookie",
+  "version": "0.1.0",
+  "description": "Cookie-based token store implementation for aptx",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "js-cookie": "^3.0.5"
+  },
+  "devDependencies": {
+    "@aptx/token-store": "workspace:*",
+    "@types/js-cookie": "^3.0.6"
+  },
+  "peerDependencies": {
+    "@aptx/token-store": "^0.1.0"
+  }
+}

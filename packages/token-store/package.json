@@ -1,0 +1,10 @@
+{
+  "name": "@aptx/token-store",
+  "version": "0.1.0",
+  "description": "Token storage contract package for aptx",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}

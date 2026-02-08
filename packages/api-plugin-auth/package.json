@@ -1,0 +1,23 @@
+{
+  "name": "@aptx/api-plugin-auth",
+  "version": "0.1.0",
+  "description": "Auth plugin for @aptx/api-core",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@aptx/api-core": "workspace:*",
+    "@aptx/token-store": "workspace:*"
+  },
+  "devDependencies": {
+    "@aptx/api-core": "workspace:*",
+    "@aptx/token-store": "workspace:*"
+  }
+}

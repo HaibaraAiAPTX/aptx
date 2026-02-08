@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals"],
+    "paths": {
+      "@aptx/api-core": ["../api-core/src/index.ts"],
+      "@aptx/token-store": ["../token-store/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests"]
+}
