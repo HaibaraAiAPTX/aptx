@@ -1,0 +1,22 @@
+{
+  "name": "@aptx/token-store-ssr-cookie",
+  "version": "0.1.0",
+  "description": "SSR cookie-based token store implementation for aptx",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@aptx/token-store": "^0.1.0"
+  },
+  "devDependencies": {
+    "@aptx/token-store": "workspace:*"
+  }
+}
+

@@ -45,6 +45,12 @@ importers:
         specifier: ^2.1.0
         version: 2.1.9
 
+  packages/api-client:
+    devDependencies:
+      '@aptx/api-core':
+        specifier: workspace:*
+        version: link:../api-core
+
   packages/api-core: {}
 
   packages/api-plugin-auth:
@@ -82,6 +88,12 @@ importers:
       '@types/js-cookie':
         specifier: ^3.0.6
         version: 3.0.6
+
+  packages/token-store-ssr-cookie:
+    devDependencies:
+      '@aptx/token-store':
+        specifier: workspace:*
+        version: link:../token-store
 
 packages:
 

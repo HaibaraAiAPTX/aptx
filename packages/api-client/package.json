@@ -1,0 +1,22 @@
+{
+  "name": "@aptx/api-client",
+  "version": "0.1.0",
+  "description": "Framework-agnostic ApiClient contract + adapters for aptx",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@aptx/api-core": "workspace:*"
+  },
+  "devDependencies": {
+    "@aptx/api-core": "workspace:*"
+  }
+}
+

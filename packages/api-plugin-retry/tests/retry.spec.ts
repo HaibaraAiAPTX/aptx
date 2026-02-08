@@ -70,4 +70,26 @@ describe("createRetryMiddleware", () => {
     vi.useRealTimers();
     expect(count).toBe(2);
   });
+
+  it("supports per-call override via req.meta.__aptxRetry", async () => {
+    const mw = createRetryMiddleware({ retries: 2 });
+    let count = 0;
+
+    await expect(
+      mw.handle(
+        new Request({
+          method: "GET",
+          url: "https://example.com",
+          meta: { __aptxRetry: { retries: 0 } },
+        }),
+        new Context({ id: "1", signal: new AbortController().signal }),
+        async () => {
+          count += 1;
+          throw new Error("fail");
+        },
+      ),
+    ).rejects.toThrow("fail");
+
+    expect(count).toBe(1);
+  });
 });
