@@ -1,135 +1,83 @@
-# Turborepo starter
+# aptx
 
-This Turborepo starter is maintained by the Turborepo core team.
+`aptx` 是一个基于 `pnpm workspace + turborepo` 的请求能力 monorepo，包含：
 
-## Using this example
+- 请求内核：`@aptx/api-core`
+- 适配层：`@aptx/api-client`
+- 插件：`@aptx/api-plugin-auth` / `@aptx/api-plugin-retry` / `@aptx/api-plugin-csrf`
+- token 存储：`@aptx/token-store` / `@aptx/token-store-cookie` / `@aptx/token-store-ssr-cookie`
+- 示例项目：`samples/*`（React / Vue / SSR Node / Next SSR / 小程序）
 
-Run the following command:
+## 环境要求
 
-```sh
-npx create-turbo@latest
+- `Node.js >= 22.14.0`
+- `pnpm 10.x`
+
+## 安装
+
+```bash
+pnpm install
 ```
 
-## What's inside?
+## 仓库结构
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```text
+packages/
+  api-core
+  api-client
+  api-plugin-auth
+  api-plugin-csrf
+  api-plugin-retry
+  token-store
+  token-store-cookie
+  token-store-ssr-cookie
+samples/
+  api-server
+  react-app
+  vue-app
+  ssr-node
+  next-ssr-auth
+  miniprogram
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## 常用命令
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+根目录统一命令：
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+pnpm dev
+pnpm build
+pnpm test
+pnpm check-types
+pnpm lint
+pnpm format
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+按包执行：
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+```bash
+pnpm --filter @aptx/api-core test
+pnpm --filter @aptx/api-plugin-auth test
+pnpm --filter @aptx/sample-next-ssr-auth dev
 ```
 
-### Remote Caching
+## Samples
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+先查看 `samples/README.md`，里面包含所有示例的启动方式。
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+常用场景：
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+- 启动接口服务：`pnpm --filter @aptx/sample-api-server dev`
+- 启动 Next SSR 示例：`pnpm --filter @aptx/sample-next-ssr-auth dev`
+- 运行 SSR 隔离 E2E：`pnpm --filter @aptx/sample-next-ssr-auth test:isolation`
 
-```
-cd my-turborepo
+## SSR 隔离验证说明
 
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
+`samples/next-ssr-auth` 通过以下包访问 `samples/api-server`：
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
+- `@aptx/api-core`
+- `@aptx/api-client`
+- `@aptx/api-plugin-auth`
+- `@aptx/token-store-ssr-cookie`
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+隔离用例位于：`samples/next-ssr-auth/tests/e2e/isolation.spec.ts`
