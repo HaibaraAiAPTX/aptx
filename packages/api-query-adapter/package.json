@@ -1,0 +1,23 @@
+{
+  "name": "@aptx/api-query-adapter",
+  "version": "0.1.0",
+  "description": "Framework-agnostic TanStack Query adapter for @aptx/api-client",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@aptx/api-client": "workspace:*",
+    "@tanstack/query-core": "^5.0.0"
+  },
+  "devDependencies": {
+    "@aptx/api-client": "workspace:*",
+    "@tanstack/query-core": "^5.0.0"
+  }
+}
