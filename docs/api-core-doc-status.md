@@ -22,6 +22,9 @@
 - Query 框架薄适配（Phase 2）：
   - `@aptx/api-query-react`（`createReactQueryHooks` / `createReactMutationHooks`）
   - `@aptx/api-query-vue`（`createVueQueryHooks` / `createVueMutationHooks`）
+- samples 已接入新适配：
+  - `samples/react-app`（QueryClientProvider + adapter/react hooks）
+  - `samples/vue-app`（VueQueryPlugin + adapter/vue hooks）
 
 ---
 
@@ -31,17 +34,24 @@
 - observability 官方插件（如 OpenTelemetry/Sentry 封装）
   - 草案：`docs/api-plugin-observability-draft.md`
 - 小程序 transport 适配
-- framework adapters（React/Vue）
-  - 薄适配已实现：`@aptx/api-query-react` / `@aptx/api-query-vue`
-  - 生成器接入方案：`docs/api-query-adapter-design.md`
-- TanStack Query 适配层
-  - Phase 1（核心适配）已实现：`@aptx/api-query-adapter`
-  - Phase 2（React/Vue 薄适配）已实现：`@aptx/api-query-react` / `@aptx/api-query-vue`
-  - 生成器终端产物仍在规划：`docs/api-query-adapter-design.md`
+- 代码生成器接入（TanStack Query 终端产物）
+  - 设计稿：`docs/api-query-adapter-design.md`
+  - 模板契约草案：`docs/codegen-template-contract-draft.md`
 
 ---
 
-## 三、文档用途说明
+## 三、建议优化/归档
+
+- `docs/final_api_architecture.md`
+  - 建议标记为“历史主方案参考”，保留不删除；当前实施以
+    `docs/api-core-doc-status.md`、`docs/api-query-adapter-design.md`、
+    `docs/codegen-template-contract-draft.md` 为准。
+- `docs/api-query-adapter-design.md`
+  - 建议持续维护为“设计 + 里程碑”文档，已实现项打标，避免再次出现“设计稿（未实现）”与现状冲突。
+
+---
+
+## 四、文档用途说明
 
 - `unireq-core-v0-design`：历史设计基线文档，已移除
 - `docs/api-core-extension-and-config-spec.md`：当前接入规范（主文档）

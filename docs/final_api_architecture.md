@@ -1,6 +1,13 @@
 # 最终版前端 API 分层与生成方案（单端 & 多端统一）
 
-> 本文档是**唯一有效方案**。  
+> 文档状态：历史主方案参考（仍有效，但不再是唯一实施入口）。  
+> 当前执行与里程碑请优先参考：  
+> - `docs/api-core-doc-status.md`  
+> - `docs/api-query-adapter-design.md`  
+> - `docs/codegen-template-contract-draft.md`  
+>  
+> 本文档保留用于架构背景与取舍说明。  
+>  
 > 目标：在 **不感知 client 的前提下**，同时满足  
 > - 单项目（运行终端明确、代码风格固定）  
 > - Monorepo / 多端项目（注册不同 client 即可复用）  

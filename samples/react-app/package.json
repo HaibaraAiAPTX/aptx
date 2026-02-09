@@ -10,6 +10,10 @@
   "dependencies": {
     "@aptx/api-client": "workspace:*",
     "@aptx/api-core": "workspace:*",
+    "@aptx/api-query-adapter": "workspace:*",
+    "@aptx/api-query-react": "workspace:*",
+    "@tanstack/query-core": "^5.90.5",
+    "@tanstack/react-query": "^5.90.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },

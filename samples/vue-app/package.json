@@ -10,6 +10,10 @@
   "dependencies": {
     "@aptx/api-client": "workspace:*",
     "@aptx/api-core": "workspace:*",
+    "@aptx/api-query-adapter": "workspace:*",
+    "@aptx/api-query-vue": "workspace:*",
+    "@tanstack/query-core": "^5.90.5",
+    "@tanstack/vue-query": "^5.90.5",
     "vue": "^3.5.13"
   },
   "devDependencies": {

@@ -2,7 +2,20 @@
 
 用途：定义 `@aptx/api-core` + `@aptx/api-client` 在 TanStack Query 生态下的统一适配方案，并给出代码生成器（Rust/TS）可直接落地的目标规格。
 
-状态：设计稿（未实现）。
+状态：部分已实现（Phase 1/2），生成器接入待实现。
+
+已实现：
+
+- Phase 1：`@aptx/api-query-adapter`
+  - `createQueryDefinition`
+  - `createMutationDefinition`
+  - `createDefaultRetryClassifier`
+- Phase 2：`@aptx/api-query-react` / `@aptx/api-query-vue`
+  - React：`createReactQueryHooks` / `createReactMutationHooks`
+  - Vue：`createVueQueryHooks` / `createVueMutationHooks`
+- samples 验证：
+  - `samples/react-app`
+  - `samples/vue-app`
 
 ---
 
@@ -244,10 +257,11 @@ Vue 版本结构一致，只替换 hooks 导入源。
 
 ## 八、实施阶段与里程碑
 
-1. Phase 1: 实现 `@aptx/api-query-adapter` 核心函数与单测。
-2. Phase 2: 生成器支持 `react-query` terminal 输出。
-3. Phase 3: 生成器支持 `vue-query` terminal 输出。
-4. Phase 4: 补齐 SSR 示例（Next/Nuxt）与迁移文档。
+1. Phase 1: 实现 `@aptx/api-query-adapter` 核心函数与单测。`[DONE]`
+2. Phase 2: 实现 React/Vue 薄适配包。`[DONE]`
+3. Phase 3: 生成器支持 `react-query` terminal 输出。`[TODO]`
+4. Phase 4: 生成器支持 `vue-query` terminal 输出。`[TODO]`
+5. Phase 5: 补齐 SSR 示例（Next/Nuxt）与迁移文档。`[TODO]`
 
 ---
 
