@@ -12,7 +12,7 @@
 
 - `baseURL`：请求基础域名
 - `headers`：全局公共头（如 `X-App`、`X-Env`）
-- `timeoutMs`：默认超时
+- `timeout`：默认超时
 - `defaultResponseType`：默认响应类型（如 `json`）
 - `strictDecode`：是否强制解码
 - `querySerializer`：自定义 query 序列化器（可选）
@@ -31,7 +31,7 @@
 每个请求可覆盖全局配置，建议遵循以下合并原则：
 
 - `headers`：**合并覆盖**（新增/覆盖全局头）
-- `timeoutMs`：**请求级优先**
+- `timeout`：**请求级优先**
 - `responseType`：**请求级优先**
 - `meta`：**浅合并**（业务协议字段，如 `tags`）
 
@@ -148,7 +148,7 @@
 
 推荐业务系统在封装层提供以下默认策略：
 
-- 默认 `timeoutMs`（例如 10s）
+- 默认 `timeout`（例如 10s）
 - 默认 `responseType` 为 `json`
 - 基础 `retry`（建议通过 `@aptx/api-plugin-retry` 注入）
 - 标准 headers（如 `X-App`、`X-Env`）

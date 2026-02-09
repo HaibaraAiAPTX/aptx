@@ -62,7 +62,7 @@ export interface ClientFetchInit {
   headers?: HeadersPatch;
   query?: QueryInitLike;
   body?: unknown;
-  timeoutMs?: number;
+  timeout?: number;
   signal?: AbortSignal;
   meta?: RequestMeta;
   onUploadProgress?: ProgressCallback;

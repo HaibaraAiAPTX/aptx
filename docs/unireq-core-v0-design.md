@@ -62,7 +62,7 @@ core 层 **不负责**：
 
 ### 1. Request
 - method / url / headers / query / body
-- timeoutMs / signal
+- timeout / signal
 - meta（请求意图层，如 responseType、tag）
 
 ### 2. Response

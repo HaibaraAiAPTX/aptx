@@ -13,7 +13,7 @@ export type RequestSpec = {
 export type PerCallOptions = {
   headers?: Record<string, string>;
   query?: QueryInitLike;
-  timeoutMs?: number;
+  timeout?: number;
   signal?: AbortSignal;
   meta?: RequestMeta;
 };
@@ -47,7 +47,7 @@ export function createAptxCoreApiClient(client: RequestClient): ApiClient {
         headers: mergeRecords(spec.headers, options.headers),
         query: mergeQuery(spec.query, options.query),
         body: spec.body,
-        timeoutMs: options.timeoutMs,
+        timeout: options.timeout,
         signal: options.signal,
         meta: mergeRecords(spec.meta, options.meta),
       });

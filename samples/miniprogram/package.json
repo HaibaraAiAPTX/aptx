@@ -1,0 +1,15 @@
+{
+  "name": "@aptx/sample-miniprogram",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@aptx/api-client": "workspace:*",
+    "@aptx/api-core": "workspace:*"
+  },
+  "scripts": {
+    "check": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "@aptx/sample-react-app",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@aptx/api-client": "workspace:*",
+    "@aptx/api-core": "workspace:*",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.4.1",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.11"
+  }
+}

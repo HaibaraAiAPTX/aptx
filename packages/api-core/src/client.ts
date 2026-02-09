@@ -54,7 +54,7 @@ function mergeHeaders(base: Headers, patch?: HeadersPatch): Headers {
   return out;
 }
 
-function mergeSignals(user?: AbortSignal, timeoutMs?: number, ctxBag?: Map<symbol, unknown>) {
+function mergeSignals(user?: AbortSignal, timeout?: number, ctxBag?: Map<symbol, unknown>) {
   const ac = new AbortController();
   const onAbort = () => ac.abort();
 
@@ -64,11 +64,11 @@ function mergeSignals(user?: AbortSignal, timeoutMs?: number, ctxBag?: Map<symbo
   }
 
   let timer: any;
-  if (timeoutMs && timeoutMs > 0) {
+  if (timeout && timeout > 0) {
     timer = setTimeout(() => {
       ctxBag?.set(TIMEOUT_BAG_KEY, true);
       ac.abort();
-    }, timeoutMs);
+    }, timeout);
   }
 
   const cleanup = () => {
@@ -93,7 +93,7 @@ export interface RequestClientOptions {
   events?: EventBus;
   baseURL?: string;
   headers?: HeadersInitLike;
-  timeoutMs?: number;
+  timeout?: number;
   meta?: RequestMeta;
   defaultResponseType?: ResponseType;
   strictDecode?: boolean;
@@ -108,7 +108,7 @@ export class RequestClient {
   private decoder: ResponseDecoder;
   private errorMapper: ErrorMapper;
   private defaultHeaders: Headers;
-  private defaultTimeoutMs?: number;
+  private defaultTimeout?: number;
   private defaultMeta?: RequestMeta;
   readonly events: EventBus;
 
@@ -126,7 +126,7 @@ export class RequestClient {
       });
     this.errorMapper = opts.errorMapper ?? new DefaultErrorMapper();
     this.defaultHeaders = toHeaders(opts.headers);
-    this.defaultTimeoutMs = opts.timeoutMs;
+    this.defaultTimeout = opts.timeout;
     this.defaultMeta = opts.meta ? { ...opts.meta } : undefined;
 
     for (const mw of opts.middlewares ?? []) this.pipeline.use(mw);
@@ -135,7 +135,7 @@ export class RequestClient {
   /** fetch-like entry (A: decode by default) */
   async fetch<T = unknown>(input: string, init: ClientFetchInit = {}): Promise<Response<T>> {
     const headers = mergeHeaders(this.defaultHeaders, init.headers);
-    const timeoutMs = init.timeoutMs ?? this.defaultTimeoutMs;
+    const timeout = init.timeout ?? this.defaultTimeout;
     const meta = this.defaultMeta ? { ...this.defaultMeta, ...(init.meta ?? {}) } : init.meta ?? {};
     if (init.onUploadProgress) meta.onUploadProgress = init.onUploadProgress;
     if (init.onDownloadProgress) meta.onDownloadProgress = init.onDownloadProgress;
@@ -145,7 +145,7 @@ export class RequestClient {
       headers,
       query: init.query,
       body: init.body,
-      timeoutMs,
+      timeout,
       signal: init.signal,
       meta,
     });
@@ -155,7 +155,7 @@ export class RequestClient {
   /** advanced entry */
   async request<T = unknown>(req: Request): Promise<Response<T>> {
     const ctxBag = new Map<symbol, unknown>();
-    const { signal, cleanup } = mergeSignals(req.signal, req.timeoutMs, ctxBag);
+    const { signal, cleanup } = mergeSignals(req.signal, req.timeout, ctxBag);
     const ctx = new Context({ id: createId(), signal, bag: ctxBag });
 
     // resolve URL before pipeline

@@ -41,3 +41,6 @@ yarn-error.log*
 # Coding Agent
 .agents/
 .claude/
+
+# TypeScript
+.tsbuildinfo

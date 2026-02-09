@@ -123,7 +123,7 @@ export type ApiClient = {
 export type PerCallOptions = {
   headers?: Record<string, string>
   query?: Record<string, any>
-  timeoutMs?: number
+  timeout?: number
   signal?: AbortSignal
   bag?: Record<string, any>
   meta?: Record<string, any>
@@ -190,7 +190,7 @@ export function listUsers(
 使用示例：
 
 ```ts
-await listUsers({ page: 1 }, { timeoutMs: 1200 })
+await listUsers({ page: 1 }, { timeout: 1200 })
 ```
 
 ### 6.2 React Query 终端（示例）
@@ -250,7 +250,7 @@ export type CreateClientOptions = {
 };
 
 export function createClient(opts: CreateClientOptions): ApiClient {
-  const rc = new RequestClient({ baseURL: opts.baseURL, timeoutMs: 10_000 });
+  const rc = new RequestClient({ baseURL: opts.baseURL, timeout: 10_000 });
 
   // optional: retry (global default)
   rc.use(

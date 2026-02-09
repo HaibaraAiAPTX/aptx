@@ -8,7 +8,7 @@
 
 - `core` 基础结构：`Request` / `Response` / `Context` / `Pipeline` / `RequestClient`
 - 默认实现：`FetchTransport` / `DefaultUrlResolver` / `DefaultBodySerializer` / `DefaultResponseDecoder` / `DefaultErrorMapper` / `SimpleEventBus`
-- 配置能力：`baseURL` / `headers` / `timeoutMs` / `meta` / `defaultResponseType` / `strictDecode` / `querySerializer`
+- 配置能力：`baseURL` / `headers` / `timeout` / `meta` / `defaultResponseType` / `strictDecode` / `querySerializer`
 - 请求级能力：header 删除（`null`）、`onUploadProgress`、`onDownloadProgress`
 - 错误类型：`HttpError` / `NetworkError` / `TimeoutError` / `CanceledError` / `ConfigError` / `SerializeError` / `DecodeError`
 - 扩展协作：`createBagKey` / `assertBagKey` / `ctx.bagView`

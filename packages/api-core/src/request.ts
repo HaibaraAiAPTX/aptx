@@ -29,7 +29,7 @@ export class Request {
   private readonly _headers: Headers;
   readonly query?: QueryInitLike;
   readonly body?: unknown;
-  readonly timeoutMs?: number;
+  readonly timeout?: number;
   readonly signal?: AbortSignal;
   readonly meta: RequestMeta;
 
@@ -39,7 +39,7 @@ export class Request {
     headers?: HeadersInitLike;
     query?: QueryInitLike;
     body?: unknown;
-    timeoutMs?: number;
+    timeout?: number;
     signal?: AbortSignal;
     meta?: RequestMeta;
   }) {
@@ -48,7 +48,7 @@ export class Request {
     this._headers = toHeaders(init.headers);
     this.query = init.query;
     this.body = init.body;
-    this.timeoutMs = init.timeoutMs;
+    this.timeout = init.timeout;
     this.signal = init.signal;
     this.meta = init.meta ?? {};
     Object.freeze(this.meta);
@@ -65,7 +65,7 @@ export class Request {
     headers: HeadersPatch;
     query: QueryInitLike;
     body: unknown;
-    timeoutMs: number;
+    timeout: number;
     signal: AbortSignal;
     meta: RequestMeta;
   }>): Request {
@@ -75,7 +75,7 @@ export class Request {
       headers: patch.headers ? mergeHeaders(this._headers, patch.headers) : this._headers,
       query: patch.query ?? this.query,
       body: patch.body ?? this.body,
-      timeoutMs: patch.timeoutMs ?? this.timeoutMs,
+      timeout: patch.timeout ?? this.timeout,
       signal: patch.signal ?? this.signal,
       meta: patch.meta ?? this.meta,
     });

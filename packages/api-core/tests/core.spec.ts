@@ -319,7 +319,7 @@ describe("RequestClient", () => {
     });
 
     vi.useFakeTimers();
-    const promise = client.fetch("https://example.com", { timeoutMs: 5 });
+    const promise = client.fetch("https://example.com", { timeout: 5 });
     vi.advanceTimersByTime(10);
     await expect(promise).rejects.toBeInstanceOf(TimeoutError);
     vi.useRealTimers();

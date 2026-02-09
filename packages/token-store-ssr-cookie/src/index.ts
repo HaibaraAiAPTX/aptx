@@ -49,7 +49,10 @@ function serializeCookie(
   const segments: string[] = [`${key}=${value}`];
   if (attrs.path) segments.push(`Path=${attrs.path}`);
   if (attrs.domain) segments.push(`Domain=${attrs.domain}`);
-  if (attrs.sameSite) segments.push(`SameSite=${attrs.sameSite[0].toUpperCase()}${attrs.sameSite.slice(1)}`);
+  if (attrs.sameSite) {
+    const sameSite = attrs.sameSite;
+    segments.push(`SameSite=${sameSite.charAt(0).toUpperCase()}${sameSite.slice(1)}`);
+  }
   if (attrs.secure) segments.push("Secure");
   if (attrs.httpOnly) segments.push("HttpOnly");
   if (typeof expiresAt === "number" && Number.isFinite(expiresAt) && expiresAt > 0) {
@@ -145,4 +148,3 @@ export const createSsrCookieTokenStore: TokenStoreFactory<SsrCookieTokenStoreOpt
 ) => {
   return new SsrCookieTokenStore(options);
 };
-
