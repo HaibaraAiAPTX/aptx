@@ -1,0 +1,27 @@
+{
+  "name": "@aptx/api-query-vue",
+  "version": "0.1.0",
+  "description": "Vue Query thin adapter for @aptx/api-query-adapter",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "peerDependencies": {
+    "@aptx/api-query-adapter": "workspace:*",
+    "@tanstack/vue-query": "^5.0.0",
+    "@tanstack/query-core": "^5.0.0",
+    "vue": "^3.3.0"
+  },
+  "devDependencies": {
+    "@aptx/api-query-adapter": "workspace:*",
+    "@tanstack/vue-query": "^5.0.0",
+    "@tanstack/query-core": "^5.0.0",
+    "vue": "^3.3.0"
+  }
+}

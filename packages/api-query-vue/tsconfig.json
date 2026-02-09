@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["vitest/globals"],
+    "paths": {
+      "@aptx/api-query-adapter": ["../api-query-adapter/src/index.ts"]
+    }
+  },
+  "include": ["src", "tests"]
+}
