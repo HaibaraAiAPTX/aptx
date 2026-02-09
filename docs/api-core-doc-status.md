@@ -17,6 +17,11 @@
   - `@aptx/api-plugin-retry`
   - `@aptx/api-plugin-auth`（主动刷新 + 401 被动刷新 + 单飞）
   - `@aptx/api-plugin-csrf`
+- Query 适配核心（Phase 1）：
+  - `@aptx/api-query-adapter`（`createQueryDefinition` / `createMutationDefinition` / `createDefaultRetryClassifier`）
+- Query 框架薄适配（Phase 2）：
+  - `@aptx/api-query-react`（`createReactQueryHooks` / `createReactMutationHooks`）
+  - `@aptx/api-query-vue`（`createVueQueryHooks` / `createVueMutationHooks`）
 
 ---
 
@@ -24,14 +29,20 @@
 
 - cache 官方插件
 - observability 官方插件（如 OpenTelemetry/Sentry 封装）
+  - 草案：`docs/api-plugin-observability-draft.md`
 - 小程序 transport 适配
 - framework adapters（React/Vue）
+  - 薄适配已实现：`@aptx/api-query-react` / `@aptx/api-query-vue`
+  - 生成器接入方案：`docs/api-query-adapter-design.md`
 - TanStack Query 适配层
+  - Phase 1（核心适配）已实现：`@aptx/api-query-adapter`
+  - Phase 2（React/Vue 薄适配）已实现：`@aptx/api-query-react` / `@aptx/api-query-vue`
+  - 生成器终端产物仍在规划：`docs/api-query-adapter-design.md`
 
 ---
 
 ## 三、文档用途说明
 
-- `docs/unireq-core-v0-design.md`：历史设计基线（保留）
+- `unireq-core-v0-design`：历史设计基线文档，已移除
 - `docs/api-core-extension-and-config-spec.md`：当前接入规范（主文档）
 - `docs/api-core-doc-status.md`：实现状态总览（本文件）
