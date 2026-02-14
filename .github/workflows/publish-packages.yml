@@ -11,7 +11,7 @@ concurrency:
 
 env:
   NODE_VERSION: '20'
-  PNPM_VERSION: '10'
+  PNPM_VERSION: '10.29.1'
 
 jobs:
   # Stage 1: Build all packages
