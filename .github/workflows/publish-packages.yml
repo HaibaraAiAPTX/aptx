@@ -1,0 +1,53 @@
+name: Publish Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10.29.1'
+  NPM_REGISTRY_URL: 'https://winserver.devserver.ink:14873/'
+  NPM_REGISTRY_AUTH_KEY: '//winserver.devserver.ink:14873/:_authToken'
+
+jobs:
+  # Build and publish all packages in one job
+  build-and-publish:
+    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Configure npm registry
+        run: |
+          pnpm config set registry "${{ env.NPM_REGISTRY_URL }}"
+          pnpm config set strict-ssl false --location project
+          pnpm config set "${{ env.NPM_REGISTRY_AUTH_KEY }}" "${{ secrets.WINSERVER_NPM_TOKEN }}"
+
+      - name: Publish all packages
+        run: pnpm publish -r --no-git-checks
