@@ -1,0 +1,284 @@
+name: Publish Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NODE_VERSION: '20'
+  PNPM_VERSION: '10'
+
+jobs:
+  # Stage 1: Build all packages
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm build:packages
+
+      - name: Upload dist
+        uses: actions/upload-artifact@v4
+        with:
+          name: packages-dist
+          path: |
+            packages/*/dist
+          retention-days: 1
+
+  # Stage 2: Publish base packages (no internal dependencies)
+  publish-base:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - token-store
+          - api-core
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-dist
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Configure npm registry
+        run: |
+          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
+          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+          echo "strict-ssl=false" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
+
+      - name: Publish @aptx/${{ matrix.package }}
+        working-directory: packages/${{ matrix.package }}
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            echo "SKIP: ${name}@${version} already exists"
+          else
+            npm publish --ignore-scripts
+            echo "PUBLISHED: ${name}@${version}"
+          fi
+
+  # Stage 3: Publish layer 2 packages (depends on base)
+  publish-layer-2:
+    needs: publish-base
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - token-store-cookie
+          - token-store-ssr-cookie
+          - api-client
+          - api-plugin-auth
+          - api-plugin-csrf
+          - api-plugin-retry
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-dist
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Configure npm registry
+        run: |
+          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
+          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+          echo "strict-ssl=false" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
+
+      - name: Publish @aptx/${{ matrix.package }}
+        working-directory: packages/${{ matrix.package }}
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            echo "SKIP: ${name}@${version} already exists"
+          else
+            npm publish --ignore-scripts
+            echo "PUBLISHED: ${name}@${version}"
+          fi
+
+  # Stage 4: Publish query adapter (depends on api-client)
+  publish-query-adapter:
+    needs: publish-layer-2
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-dist
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Configure npm registry
+        run: |
+          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
+          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+          echo "strict-ssl=false" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
+
+      - name: Publish @aptx/api-query-adapter
+        working-directory: packages/api-query-adapter
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            echo "SKIP: ${name}@${version} already exists"
+          else
+            npm publish --ignore-scripts
+            echo "PUBLISHED: ${name}@${version}"
+          fi
+
+  # Stage 5: Publish query framework packages (depends on query-adapter)
+  publish-query-framework:
+    needs: publish-query-adapter
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - api-query-react
+          - api-query-vue
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: packages-dist
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile --ignore-scripts
+
+      - name: Configure npm registry
+        run: |
+          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
+          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
+          echo "strict-ssl=false" >> ~/.npmrc
+        env:
+          NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
+
+      - name: Publish @aptx/${{ matrix.package }}
+        working-directory: packages/${{ matrix.package }}
+        run: |
+          name=$(node -p "require('./package.json').name")
+          version=$(node -p "require('./package.json').version")
+          if npm view "${name}@${version}" version >/dev/null 2>&1; then
+            echo "SKIP: ${name}@${version} already exists"
+          else
+            npm publish --ignore-scripts
+            echo "PUBLISHED: ${name}@${version}"
+          fi
+
+  # Summary
+  summary:
+    needs: [publish-base, publish-layer-2, publish-query-adapter, publish-query-framework]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check results
+        run: |
+          echo "## Publish Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.publish-base.result }}" == "success" ] && \
+             [ "${{ needs.publish-layer-2.result }}" == "success" ] && \
+             [ "${{ needs.publish-query-adapter.result }}" == "success" ] && \
+             [ "${{ needs.publish-query-framework.result }}" == "success" ]; then
+            echo "All packages published successfully!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "| Stage | Status |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| base | ${{ needs.publish-base.result }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| layer-2 | ${{ needs.publish-layer-2.result }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| query-adapter | ${{ needs.publish-query-adapter.result }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| query-framework | ${{ needs.publish-query-framework.result }} |" >> $GITHUB_STEP_SUMMARY
+          fi
