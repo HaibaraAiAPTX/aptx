@@ -43,6 +43,7 @@ jobs:
           name: packages-dist
           path: |
             packages/*/dist
+          merge-multiple: true
           retention-days: 1
 
   # Stage 2: Publish base packages (no internal dependencies)
