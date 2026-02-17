@@ -9,13 +9,19 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 env:
   NODE_VERSION: '20'
   PNPM_VERSION: '10.29.1'
+  NPM_REGISTRY_URL: 'https://winserver.devserver.ink:14873/'
+  NPM_REGISTRY_AUTH_KEY: '//winserver.devserver.ink:14873/:_authToken'
 
 jobs:
   # Stage 1: Build all packages
   build:
+    timeout-minutes: 20
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -37,21 +43,31 @@ jobs:
       - name: Build packages
         run: pnpm build:packages
 
-      - name: Upload dist
+      - name: Pack build artifacts
+        shell: bash
+        run: |
+          shopt -s nullglob
+          artifacts=(packages/*/dist)
+          if [ ${#artifacts[@]} -eq 0 ]; then
+            echo "No dist directories were produced by build."
+            exit 1
+          fi
+          tar -czf packages-build-artifacts.tgz "${artifacts[@]}"
+
+      - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: packages-dist
-          path: |
-            packages/*/dist
-          merge-multiple: true
+          name: packages-build-artifacts
+          path: packages-build-artifacts.tgz
+          if-no-files-found: error
+          compression-level: 0
           retention-days: 1
 
   # Stage 2: Publish base packages (no internal dependencies)
   publish-base:
     needs: build
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -72,19 +88,37 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Download dist
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: packages-dist
+          name: packages-build-artifacts
+          path: .
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Extract build artifacts
+        shell: bash
+        run: tar -xzf packages-build-artifacts.tgz
+
+      - name: Validate dist artifacts
+        shell: bash
+        run: |
+          dist_dir="packages/${{ matrix.package }}/dist"
+          if [ ! -d "$dist_dir" ] || [ -z "$(ls -A "$dist_dir")" ]; then
+            echo "Missing or empty dist directory: $dist_dir"
+            exit 1
+          fi
+
+      - name: Validate package contents
+        working-directory: packages/${{ matrix.package }}
+        run: pnpm pack --dry-run >/dev/null
+
       - name: Configure npm registry
         run: |
-          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
-          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-          echo "strict-ssl=false" >> ~/.npmrc
+          pnpm config set registry "${NPM_REGISTRY_URL}"
+          pnpm config set strict-ssl false
+          pnpm config set "${NPM_REGISTRY_AUTH_KEY}" "${NPM_TOKEN}"
         env:
           NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
 
@@ -103,9 +137,8 @@ jobs:
   # Stage 3: Publish layer 2 packages (depends on base)
   publish-layer-2:
     needs: publish-base
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -130,19 +163,37 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Download dist
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: packages-dist
+          name: packages-build-artifacts
+          path: .
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Extract build artifacts
+        shell: bash
+        run: tar -xzf packages-build-artifacts.tgz
+
+      - name: Validate dist artifacts
+        shell: bash
+        run: |
+          dist_dir="packages/${{ matrix.package }}/dist"
+          if [ ! -d "$dist_dir" ] || [ -z "$(ls -A "$dist_dir")" ]; then
+            echo "Missing or empty dist directory: $dist_dir"
+            exit 1
+          fi
+
+      - name: Validate package contents
+        working-directory: packages/${{ matrix.package }}
+        run: pnpm pack --dry-run >/dev/null
+
       - name: Configure npm registry
         run: |
-          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
-          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-          echo "strict-ssl=false" >> ~/.npmrc
+          pnpm config set registry "${NPM_REGISTRY_URL}"
+          pnpm config set strict-ssl false
+          pnpm config set "${NPM_REGISTRY_AUTH_KEY}" "${NPM_TOKEN}"
         env:
           NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
 
@@ -161,9 +212,8 @@ jobs:
   # Stage 4: Publish query adapter (depends on api-client)
   publish-query-adapter:
     needs: publish-layer-2
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     steps:
       - uses: actions/checkout@v4
 
@@ -178,19 +228,37 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Download dist
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: packages-dist
+          name: packages-build-artifacts
+          path: .
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Extract build artifacts
+        shell: bash
+        run: tar -xzf packages-build-artifacts.tgz
+
+      - name: Validate dist artifacts
+        shell: bash
+        run: |
+          dist_dir="packages/api-query-adapter/dist"
+          if [ ! -d "$dist_dir" ] || [ -z "$(ls -A "$dist_dir")" ]; then
+            echo "Missing or empty dist directory: $dist_dir"
+            exit 1
+          fi
+
+      - name: Validate package contents
+        working-directory: packages/api-query-adapter
+        run: pnpm pack --dry-run >/dev/null
+
       - name: Configure npm registry
         run: |
-          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
-          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-          echo "strict-ssl=false" >> ~/.npmrc
+          pnpm config set registry "${NPM_REGISTRY_URL}"
+          pnpm config set strict-ssl false
+          pnpm config set "${NPM_REGISTRY_AUTH_KEY}" "${NPM_TOKEN}"
         env:
           NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
 
@@ -209,9 +277,8 @@ jobs:
   # Stage 5: Publish query framework packages (depends on query-adapter)
   publish-query-framework:
     needs: publish-query-adapter
+    timeout-minutes: 20
     runs-on: ubuntu-latest
-    permissions:
-      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -232,19 +299,37 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
-      - name: Download dist
+      - name: Download build artifacts
         uses: actions/download-artifact@v4
         with:
-          name: packages-dist
+          name: packages-build-artifacts
+          path: .
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --ignore-scripts
 
+      - name: Extract build artifacts
+        shell: bash
+        run: tar -xzf packages-build-artifacts.tgz
+
+      - name: Validate dist artifacts
+        shell: bash
+        run: |
+          dist_dir="packages/${{ matrix.package }}/dist"
+          if [ ! -d "$dist_dir" ] || [ -z "$(ls -A "$dist_dir")" ]; then
+            echo "Missing or empty dist directory: $dist_dir"
+            exit 1
+          fi
+
+      - name: Validate package contents
+        working-directory: packages/${{ matrix.package }}
+        run: pnpm pack --dry-run >/dev/null
+
       - name: Configure npm registry
         run: |
-          echo "registry=https://winserver.devserver.ink:14873/" > ~/.npmrc
-          echo "//winserver.devserver.ink:14873/:_authToken=${NPM_TOKEN}" >> ~/.npmrc
-          echo "strict-ssl=false" >> ~/.npmrc
+          pnpm config set registry "${NPM_REGISTRY_URL}"
+          pnpm config set strict-ssl false
+          pnpm config set "${NPM_REGISTRY_AUTH_KEY}" "${NPM_TOKEN}"
         env:
           NPM_TOKEN: ${{ secrets.WINSERVER_NPM_TOKEN }}
 
@@ -264,6 +349,7 @@ jobs:
   summary:
     needs: [publish-base, publish-layer-2, publish-query-adapter, publish-query-framework]
     if: always()
+    timeout-minutes: 5
     runs-on: ubuntu-latest
     steps:
       - name: Check results
