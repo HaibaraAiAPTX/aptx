@@ -1,10 +1,10 @@
-import { BodySerializer, HeadersInitLike } from "../types";
+import { BodySerializer, HeadersPatch } from "../types";
 import { Request } from "../request";
 import { Context } from "../context";
 import { SerializeError } from "../errors";
 
 export class DefaultBodySerializer implements BodySerializer {
-  serialize(req: Request, _ctx: Context): { body: any; headers?: HeadersInitLike } {
+  serialize(req: Request, _ctx: Context): { body: any; headers?: HeadersPatch } {
     const body = req.body;
 
     if (body === undefined || body === null) return { body: undefined };
@@ -16,7 +16,9 @@ export class DefaultBodySerializer implements BodySerializer {
       body instanceof FormData ||
       body instanceof URLSearchParams
     ) {
-      return { body };
+      // These body types should let fetch auto-set Content-Type (e.g., with boundary for FormData).
+      // Return null to explicitly remove any user-set Content-Type header.
+      return { body, headers: { "content-type": null } };
     }
 
     const hasContentType = req.headers.get("content-type") !== null;

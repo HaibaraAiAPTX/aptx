@@ -92,7 +92,7 @@ export interface UrlResolver {
 }
 
 export interface BodySerializer {
-  serialize(req: Request, ctx: Context): { body: any; headers?: HeadersInitLike };
+  serialize(req: Request, ctx: Context): { body: any; headers?: HeadersPatch };
 }
 
 export interface ResponseDecoder {

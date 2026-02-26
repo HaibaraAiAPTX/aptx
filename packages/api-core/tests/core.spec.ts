@@ -168,6 +168,49 @@ describe("DefaultBodySerializer", () => {
     const paramResult = serializer.serialize(paramReq, {} as any);
     expect(paramResult.body).toBe(params);
   });
+
+  it("removes content-type for FormData to let fetch auto-set boundary", () => {
+    const serializer = new DefaultBodySerializer();
+    const formData = new FormData();
+    formData.append("file", new Blob(["test"]), "test.txt");
+    const req = new Request({
+      method: "POST",
+      url: "https://example.com",
+      headers: { "content-type": "multipart/form-data" }, // user incorrectly sets without boundary
+      body: formData,
+    });
+    const result = serializer.serialize(req, {} as any);
+    expect(result.body).toBe(formData);
+    expect(result.headers).toEqual({ "content-type": null });
+  });
+
+  it("removes content-type for Blob bodies", () => {
+    const serializer = new DefaultBodySerializer();
+    const blob = new Blob(["data"], { type: "text/plain" });
+    const req = new Request({
+      method: "POST",
+      url: "https://example.com",
+      headers: { "content-type": "application/octet-stream" },
+      body: blob,
+    });
+    const result = serializer.serialize(req, {} as any);
+    expect(result.body).toBe(blob);
+    expect(result.headers).toEqual({ "content-type": null });
+  });
+
+  it("removes content-type for ArrayBuffer bodies", () => {
+    const serializer = new DefaultBodySerializer();
+    const buffer = new TextEncoder().encode("data").buffer;
+    const req = new Request({
+      method: "POST",
+      url: "https://example.com",
+      headers: { "content-type": "application/octet-stream" },
+      body: buffer,
+    });
+    const result = serializer.serialize(req, {} as any);
+    expect(result.body).toBe(buffer);
+    expect(result.headers).toEqual({ "content-type": null });
+  });
 });
 
 describe("DefaultResponseDecoder", () => {
@@ -333,5 +376,67 @@ describe("createBagKey", () => {
   it("creates a symbol key", () => {
     const key = createBagKey("test");
     expect(typeof key).toBe("symbol");
+  });
+});
+
+describe("FetchTransport header merging", () => {
+  it("sets content-type for JSON body via serializer", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response("ok", { status: 200 })
+    );
+    vi.stubGlobal("fetch", mockFetch);
+
+    const client = new RequestClient();
+    await client.fetch("https://example.com", {
+      method: "POST",
+      body: { a: 1 },
+    });
+
+    const fetchHeaders = mockFetch.mock.calls[0]![1]!.headers as Headers;
+    expect(fetchHeaders.get("content-type")).toBe("application/json");
+
+    vi.unstubAllGlobals();
+  });
+
+  it("removes user-set content-type for FormData body", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response("ok", { status: 200 })
+    );
+    vi.stubGlobal("fetch", mockFetch);
+
+    const client = new RequestClient();
+    const formData = new FormData();
+    formData.append("name", "test");
+
+    await client.fetch("https://example.com", {
+      method: "POST",
+      headers: { "content-type": "multipart/form-data" }, // user incorrectly sets without boundary
+      body: formData,
+    });
+
+    const fetchHeaders = mockFetch.mock.calls[0]![1]!.headers as Headers;
+    // content-type should be removed so fetch can auto-set with boundary
+    expect(fetchHeaders.get("content-type")).toBeNull();
+
+    vi.unstubAllGlobals();
+  });
+
+  it("removes user-set content-type for Blob body", async () => {
+    const mockFetch = vi.fn().mockResolvedValue(
+      new Response("ok", { status: 200 })
+    );
+    vi.stubGlobal("fetch", mockFetch);
+
+    const client = new RequestClient();
+    await client.fetch("https://example.com", {
+      method: "POST",
+      headers: { "content-type": "text/plain" },
+      body: new Blob(["data"]),
+    });
+
+    const fetchHeaders = mockFetch.mock.calls[0]![1]!.headers as Headers;
+    expect(fetchHeaders.get("content-type")).toBeNull();
+
+    vi.unstubAllGlobals();
   });
 });

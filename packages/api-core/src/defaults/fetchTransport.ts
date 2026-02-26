@@ -52,8 +52,15 @@ export class FetchTransport implements Transport {
   async send(req: Request, ctx: Context): Promise<TransportResult> {
     const { body, headers: extraHeaders } = this.serializer.serialize(req, ctx);
 
-    const headers = new Headers(extraHeaders as any);
+    // Apply req.headers first, then serializer headers (serializer has final say)
+    const headers = new Headers();
     req.headers.forEach((v, k) => headers.set(k, v));
+    if (extraHeaders) {
+      for (const [k, v] of Object.entries(extraHeaders)) {
+        if (v === null || v === undefined) headers.delete(k);
+        else headers.set(k, v);
+      }
+    }
 
     const onUploadProgress = req.meta.onUploadProgress;
     if (onUploadProgress) {
