@@ -1,0 +1,22 @@
+{
+  "name": "@aptx/sample-token-store-factory",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@aptx/api-client": "workspace:*",
+    "@aptx/api-core": "workspace:*",
+    "@aptx/api-plugin-auth": "workspace:*",
+    "@aptx/token-store": "workspace:*",
+    "@aptx/token-store-cookie": "workspace:*",
+    "@aptx/token-store-ssr-cookie": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3",
+    "vitest": "^3.0.7"
+  }
+}
