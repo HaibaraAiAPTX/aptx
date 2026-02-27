@@ -80,7 +80,8 @@ export async function createServerApiContext(options: { writableCookies: boolean
   const cookieStore = await cookies();
   const readCookieHeader = () => cookieStore.getAll().map((item) => `${item.name}=${item.value}`).join("; ");
 
-  const store = createSsrCookieTokenStore({
+  // 使用工厂函数模式创建 store，每次调用返回新实例
+  const storeFactory = () => createSsrCookieTokenStore({
     tokenKey: TOKEN_COOKIE_KEY,
     metaKey: TOKEN_META_COOKIE_KEY,
     cookie: {
@@ -105,13 +106,16 @@ export async function createServerApiContext(options: { writableCookies: boolean
 
   core.use(
     createAuthMiddleware({
-      store,
+      store: storeFactory, // 使用工厂函数，支持 SSR 每请求独立 store
       shouldRefresh: () => false,
       refreshToken: async () => {
         throw new Error("refresh is not implemented in this sample");
       }
     })
   );
+
+  // 为了兼容现有代码，也返回一个 store 实例
+  const store = storeFactory();
 
   return {
     api: createAptxCoreApiClient(core),
