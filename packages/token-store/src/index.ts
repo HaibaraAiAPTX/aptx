@@ -21,3 +21,19 @@ export interface TokenStore {
 export interface TokenStoreFactory<TOptions = unknown> {
   create(options: TOptions): TokenStore;
 }
+
+/** Store 选项：直接实例 | 同步工厂 | 异步工厂 */
+export type TokenStoreResolver =
+  | TokenStore
+  | (() => TokenStore)
+  | (() => Promise<TokenStore>);
+
+/** 解析 TokenStoreResolver，返回 TokenStore 实例 */
+export async function resolveTokenStore(
+  resolver: TokenStoreResolver,
+): Promise<TokenStore> {
+  if (typeof resolver === "function") {
+    return await resolver();
+  }
+  return resolver;
+}

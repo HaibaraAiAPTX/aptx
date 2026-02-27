@@ -1,8 +1,8 @@
 import { Context, HttpError, Middleware, Request, Response, createBagKey } from "@aptx/api-core";
-import type { TokenStore } from "@aptx/token-store";
+import { resolveTokenStore, type TokenStoreResolver } from "@aptx/token-store";
 
 export interface AuthPluginOptions {
-  store: TokenStore;
+  store: TokenStoreResolver;
   refreshLeewayMs?: number;
 
   shouldRefresh?: (error: Error, req: Request, ctx: Context) => boolean;
@@ -27,28 +27,33 @@ export function createAuthController(options: AuthPluginOptions): AuthController
 
   const refresh = async (): Promise<string> => {
     if (!refreshPromise) {
-      refreshPromise = Promise.resolve()
-        .then(async () => {
+      refreshPromise = (async () => {
+        try {
+          const store = await resolveTokenStore(options.store);
           const res = await options.refreshToken();
           const token = typeof res === "string" ? res : res.token;
           const expiresAt = typeof res === "string" ? undefined : res.expiresAt;
-          await options.store.setToken(token, { expiresAt });
+          await store.setToken(token, { expiresAt });
           return token;
-        })
-        .finally(() => {
+        } finally {
           refreshPromise = null;
-        });
+        }
+      })();
     }
     return refreshPromise;
   };
 
   const ensureValidToken = async (): Promise<string> => {
-    const token = (await options.store.getToken()) ?? "";
+    const store = await resolveTokenStore(options.store);
+    const token = (await store.getToken()) ?? "";
+
+    if (!token) return token;
+
     let expiresAt: number | undefined;
-    if (options.store.getMeta) {
-      expiresAt = (await options.store.getMeta())?.expiresAt;
-    } else if (options.store.getRecord) {
-      expiresAt = (await options.store.getRecord())?.meta?.expiresAt;
+    if (store.getMeta) {
+      expiresAt = (await store.getMeta())?.expiresAt;
+    } else if (store.getRecord) {
+      expiresAt = (await store.getRecord())?.meta?.expiresAt;
     }
     if (!expiresAt) return token;
 
@@ -101,7 +106,8 @@ export function createAuthMiddleware(options: AuthPluginOptions): Middleware {
           });
           return await next(retryReq, ctx);
         } catch (refreshErr) {
-          await options.store.clearToken();
+          const store = await resolveTokenStore(options.store);
+          await store.clearToken();
           options.onRefreshFailed?.(refreshErr as Error);
           throw refreshErr;
         }
