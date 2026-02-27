@@ -1,6 +1,6 @@
 {
   "name": "@aptx/token-store-cookie",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Cookie-based token store implementation for aptx",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
@@ -32,6 +32,6 @@
     "@types/js-cookie": "^3.0.6"
   },
   "peerDependencies": {
-    "@aptx/token-store": "^0.1.0"
+    "@aptx/token-store": "^0.1.1"
   }
 }
