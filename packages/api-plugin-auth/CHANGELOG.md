@@ -1,5 +1,11 @@
 # @aptx/api-plugin-auth
 
+## 0.1.3
+
+### Patch Changes
+
+- 修复了刷新 token 时 401 陷入死循环的bug，修改为服务端不执行刷新 token
+
 ## 0.1.2
 
 ### Patch Changes

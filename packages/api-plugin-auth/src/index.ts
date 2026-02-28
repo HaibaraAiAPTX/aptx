@@ -22,6 +22,11 @@ export interface AuthController {
 
 const AUTH_RETRY_KEY = createBagKey("auth_retry");
 
+// 检查是否在服务端环境
+function isServerSide(): boolean {
+  return typeof window === "undefined";
+}
+
 export function createAuthController(options: AuthPluginOptions): AuthController {
   let refreshPromise: Promise<string> | null = null;
 
@@ -48,6 +53,11 @@ export function createAuthController(options: AuthPluginOptions): AuthController
     const token = (await store.getToken()) ?? "";
 
     if (!token) return token;
+
+    // 在服务端不自动刷新 token，直接返回
+    if (isServerSide()) {
+      return token;
+    }
 
     let expiresAt: number | undefined;
     if (store.getMeta) {
@@ -89,18 +99,31 @@ export function createAuthMiddleware(options: AuthPluginOptions): Middleware {
         return await next(authedReq, ctx);
       } catch (err) {
         const error = err as Error;
+
+        // 在服务端不处理 token 刷新，直接抛出错误
+        // 刷新 token 应该由客户端处理
+        if (isServerSide()) {
+          throw error;
+        }
+
         const shouldRefresh = options.shouldRefresh
           ? options.shouldRefresh(error, authedReq, ctx)
           : defaultShouldRefresh(error);
 
-        if (!shouldRefresh) throw error;
+        if (!shouldRefresh) {
+          throw error;
+        }
 
         const currentRetry = (ctx.bag.get(AUTH_RETRY_KEY) as number | undefined) ?? 0;
-        if (currentRetry >= maxRetry) throw error;
+
+        if (currentRetry >= maxRetry) {
+          throw error;
+        }
         ctx.bag.set(AUTH_RETRY_KEY, currentRetry + 1);
 
         try {
           const newToken = await controller.refresh();
+
           const retryReq = authedReq.with({
             headers: { [headerName]: `${tokenPrefix}${newToken}` },
           });

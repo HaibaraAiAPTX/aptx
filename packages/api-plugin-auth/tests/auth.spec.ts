@@ -6,6 +6,13 @@ import { Response } from "../../api-core/src/response";
 import { HttpError } from "../../api-core/src/errors";
 import type { TokenStore } from "../../token-store/src/index";
 
+// Mock window for browser environment simulation (Node.js tests need this for auth refresh logic)
+const mockWindow = {};
+Object.defineProperty(globalThis, "window", {
+  value: mockWindow,
+  writable: true,
+});
+
 describe("auth controller", () => {
   it("refreshes when token is near expiry and calls setToken", async () => {
     let stored = "old";
