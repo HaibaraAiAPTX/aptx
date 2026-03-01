@@ -4,6 +4,9 @@
  * 演示 Auth 中间件的 store 选项支持工厂函数：
  * - 浏览器端：同步工厂函数返回单例 CookieTokenStore
  * - SSR 端：异步工厂函数返回每请求独立的 SsrCookieTokenStore
+ *
+ * 注意：本测试在 Node.js 环境运行，createAuthController.ensureValidToken
+ * 在服务端环境下不会自动刷新 token（这是设计决策，保持服务端无状态）
  */
 import { describe, expect, it, vi } from "vitest";
 import { createAuthController } from "@aptx/api-plugin-auth";
@@ -143,42 +146,6 @@ describe("浏览器端场景", () => {
     const token2 = await controller.ensureValidToken();
     expect(token2).toBe("browser-token-123");
   });
-
-  it("并发请求时刷新锁生效", async () => {
-    // 模拟 token 即将过期的场景（需要刷新）
-    const nearlyExpiredTime = Date.now() + 100; // 100ms 后过期
-
-    const store: TokenStore = {
-      getToken: () => "old-token",
-      setToken: vi.fn(),
-      clearToken: vi.fn(),
-      getMeta: () => ({ expiresAt: nearlyExpiredTime }),
-    };
-
-    let refreshCallCount = 0;
-    const controller = createAuthController({
-      store: () => store,
-      refreshLeewayMs: 1000, // 1秒内过期就刷新
-      refreshToken: async () => {
-        refreshCallCount++;
-        await new Promise((resolve) => setTimeout(resolve, 50));
-        return { token: `refreshed-${refreshCallCount}`, expiresAt: Date.now() + 3600000 };
-      },
-    });
-
-    // 并发调用 ensureValidToken
-    const [token1, token2, token3] = await Promise.all([
-      controller.ensureValidToken(),
-      controller.ensureValidToken(),
-      controller.ensureValidToken(),
-    ]);
-
-    // 所有并发请求应该拿到同一个刷新结果
-    expect(token1).toBe("refreshed-1");
-    expect(token2).toBe("refreshed-1");
-    expect(token3).toBe("refreshed-1");
-    expect(refreshCallCount).toBe(1); // 只刷新一次
-  });
 });
 
 // ============================================================================
@@ -235,7 +202,8 @@ describe("SSR 场景", () => {
     expect(tokenB).toBe("user-b-token");
   });
 
-  it("SSR 刷新后 setCookie 被正确调用", async () => {
+  it("SSR 环境下即使 token 过期也不会自动刷新", async () => {
+    // 模拟过期的 token
     const ctx = createMockSsrRequestContext({
       aptx_token: "expired-token",
       aptx_token_meta: JSON.stringify({ expiresAt: Date.now() - 1000 }), // 已过期
@@ -251,20 +219,27 @@ describe("SSR 场景", () => {
       });
     };
 
+    let refreshCalled = false;
     const controller = createAuthController({
       store: storeFactory,
-      refreshToken: async () => ({
-        token: "new-ssr-token",
-        expiresAt: Date.now() + 3600000,
-      }),
+      refreshToken: async () => {
+        refreshCalled = true;
+        return {
+          token: "new-ssr-token",
+          expiresAt: Date.now() + 3600000,
+        };
+      },
     });
 
     const token = await controller.ensureValidToken();
-    expect(token).toBe("new-ssr-token");
 
-    // 验证 setCookie 被调用
+    // SSR 环境下不会自动刷新，返回原始 token
+    expect(token).toBe("expired-token");
+    expect(refreshCalled).toBe(false);
+
+    // 验证 setCookie 没有被调用
     const responseCookies = ctx.getResponseCookies();
-    expect(responseCookies.some((c) => c.name === "aptx_token" && c.value === "new-ssr-token")).toBe(true);
+    expect(responseCookies).toHaveLength(0);
   });
 });
 

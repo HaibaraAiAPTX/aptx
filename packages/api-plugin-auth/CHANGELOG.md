@@ -1,5 +1,18 @@
 # @aptx/api-plugin-auth
 
+## 0.1.4
+
+### Patch Changes
+
+- 新增 `SKIP_AUTH_REFRESH_META_KEY` 导出，支持在请求 meta 中标记跳过 auth 刷新
+- 修复 refreshToken 请求返回 401 时可能导致死锁的问题
+
+### SSR Behavior
+
+服务端环境下 (`typeof window === "undefined"`):
+- `ensureValidToken` 直接返回当前 token，不执行自动刷新
+- 这避免了 SSR 场景下的 token 刷新竞态条件，保持服务端无状态
+
 ## 0.1.3
 
 ### Patch Changes

@@ -15,6 +15,14 @@ export interface AuthPluginOptions {
   maxRetry?: number;
 }
 
+/**
+ * Meta key for skipping auth refresh.
+ * When a request has this meta key set to true, the auth middleware will not
+ * attempt to refresh the token on 401 errors. This is useful for refresh token
+ * requests themselves to avoid infinite loops.
+ */
+export const SKIP_AUTH_REFRESH_META_KEY = "skipAuthRefresh";
+
 export interface AuthController {
   refresh: () => Promise<string>;
   ensureValidToken: () => Promise<string>;
@@ -103,6 +111,12 @@ export function createAuthMiddleware(options: AuthPluginOptions): Middleware {
         // 在服务端不处理 token 刷新，直接抛出错误
         // 刷新 token 应该由客户端处理
         if (isServerSide()) {
+          throw error;
+        }
+
+        // 检查请求是否标记为跳过 auth 刷新（如 refreshToken 请求本身）
+        // 避免 refreshToken 请求 401 时触发无限循环
+        if (req.meta[SKIP_AUTH_REFRESH_META_KEY] === true) {
           throw error;
         }
 
