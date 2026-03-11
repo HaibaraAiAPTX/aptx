@@ -1,5 +1,12 @@
 # @aptx/api-plugin-auth
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies
+  - @aptx/api-core@0.1.3
+
 ## 0.1.4
 
 ### Patch Changes
@@ -10,6 +17,7 @@
 ### SSR Behavior
 
 服务端环境下 (`typeof window === "undefined"`):
+
 - `ensureValidToken` 直接返回当前 token，不执行自动刷新
 - 这避免了 SSR 场景下的 token 刷新竞态条件，保持服务端无状态
 

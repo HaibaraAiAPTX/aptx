@@ -1,5 +1,11 @@
 # @aptx/api-core
 
+## 0.1.3
+
+### Patch Changes
+
+- 修复 BaseUrl 路径会被剪掉的 bug
+
 ## 0.1.2
 
 ### Patch Changes
