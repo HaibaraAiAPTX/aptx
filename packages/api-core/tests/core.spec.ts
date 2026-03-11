@@ -122,6 +122,24 @@ describe("DefaultUrlResolver", () => {
     expect(url).toContain("tag=a");
     expect(url).toContain("tag=b");
   });
+
+  it("preserves baseURL path when request URL starts with /", () => {
+    const resolver = new DefaultUrlResolver("https://gateway.example.com/api/v1");
+    const req = new Request({ method: "GET", url: "/user" });
+    expect(resolver.resolve(req, {} as any)).toBe("https://gateway.example.com/api/v1/user");
+  });
+
+  it("preserves baseURL path with trailing slash", () => {
+    const resolver = new DefaultUrlResolver("https://gateway.example.com/api/v1/");
+    const req = new Request({ method: "GET", url: "/user" });
+    expect(resolver.resolve(req, {} as any)).toBe("https://gateway.example.com/api/v1/user");
+  });
+
+  it("handles request URL without leading slash", () => {
+    const resolver = new DefaultUrlResolver("https://gateway.example.com/api/v1");
+    const req = new Request({ method: "GET", url: "user" });
+    expect(resolver.resolve(req, {} as any)).toBe("https://gateway.example.com/api/v1/user");
+  });
 });
 
 describe("DefaultBodySerializer", () => {

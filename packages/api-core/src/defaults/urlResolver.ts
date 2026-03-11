@@ -33,13 +33,37 @@ function isAbsoluteUrl(url: string): boolean {
 }
 
 export class DefaultUrlResolver implements UrlResolver {
-  constructor(private readonly baseURL?: string, private readonly querySerializer?: QuerySerializer) {}
+  private readonly baseOrigin?: string;
+  private readonly basePath?: string;
+
+  constructor(private readonly baseURL?: string, private readonly querySerializer?: QuerySerializer) {
+    // 预解析 baseURL，分离 origin 和 path
+    if (baseURL) {
+      try {
+        const parsed = new URL(baseURL);
+        this.baseOrigin = parsed.origin;
+        // 保留路径部分，移除末尾斜杠（除非是根路径）
+        this.basePath = parsed.pathname.replace(/\/+$/, "") || "";
+      } catch {
+        // 如果 baseURL 不是有效 URL，保持原行为
+      }
+    }
+  }
 
   resolve(req: Request, _ctx: Context): string {
     if (!this.baseURL && !isAbsoluteUrl(req.url)) {
       throw new ConfigError("Relative URL is not allowed without baseURL");
     }
-    const url = this.baseURL ? new URL(req.url, this.baseURL).toString() : req.url;
+
+    let url: string;
+    if (this.baseOrigin && this.basePath && !isAbsoluteUrl(req.url)) {
+      // 正确合并 baseURL 路径和请求路径
+      const reqPath = req.url.startsWith("/") ? req.url : "/" + req.url;
+      url = this.baseOrigin + this.basePath + reqPath;
+    } else {
+      url = this.baseURL ? new URL(req.url, this.baseURL).toString() : req.url;
+    }
+
     if (req.query && this.querySerializer) {
       return this.querySerializer(req.query, url);
     }
