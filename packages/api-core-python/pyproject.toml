@@ -1,0 +1,23 @@
+[project]
+name = "aptx-api-core"
+version = "0.1.0"
+description = "Python async runtime for aptx code-generated API clients"
+requires-python = ">=3.10"
+dependencies = [
+    "httpx>=0.27,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "respx>=0.22",
+    "ruff>=0.8",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/aptx_api_core"]
