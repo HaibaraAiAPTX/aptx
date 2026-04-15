@@ -5,6 +5,7 @@ import { ConfigError } from "../errors";
 import { createBagKey } from "../types";
 
 export const URL_RESOLVER_BASE_URL_BAG_KEY = createBagKey("urlResolver.baseURL");
+export const URL_RESOLVER_GATEWAY_PREFIX_BAG_KEY = createBagKey("urlResolver.gatewayPrefix");
 
 function applyQuery(url: string, query?: QueryInitLike): string {
   if (!query) return url;
@@ -51,6 +52,11 @@ function joinUrl(baseURL: string, reqUrl: string): string {
   return url;
 }
 
+function getGatewayConfigError(baseURL: string, prefix: string | undefined, cause: unknown): ConfigError {
+  const prefixLabel = prefix ? ` for prefix "${prefix}"` : "";
+  return new ConfigError(`Invalid gateway baseURL "${baseURL}"${prefixLabel}`, cause);
+}
+
 function normalizePrefix(prefix: string): string {
   if (!prefix) return "/";
   return prefix.startsWith("/") ? prefix.replace(/\/+$/, "") || "/" : "/" + prefix.replace(/\/+$/, "");
@@ -87,8 +93,10 @@ export function createGatewayUrlResolver(gateways: Record<string, string>): UrlR
       const matched = entries.find(({ prefix }) => matchesPrefix(req.url, prefix));
       if (matched) {
         ctx.bag.set(URL_RESOLVER_BASE_URL_BAG_KEY, matched.baseURL);
+        ctx.bag.set(URL_RESOLVER_GATEWAY_PREFIX_BAG_KEY, matched.prefix);
       } else {
         ctx.bag.delete(URL_RESOLVER_BASE_URL_BAG_KEY);
+        ctx.bag.delete(URL_RESOLVER_GATEWAY_PREFIX_BAG_KEY);
       }
 
       return req.url;
@@ -101,6 +109,8 @@ export class DefaultUrlResolver implements UrlResolver {
 
   resolve(req: Request, ctx: Context): string {
     const runtimeBaseURL = ctx?.bag instanceof Map ? ctx.bag.get(URL_RESOLVER_BASE_URL_BAG_KEY) : undefined;
+    const gatewayPrefix =
+      ctx?.bag instanceof Map ? ctx.bag.get(URL_RESOLVER_GATEWAY_PREFIX_BAG_KEY) : undefined;
     const effectiveBaseURL =
       typeof runtimeBaseURL === "string" && runtimeBaseURL.length > 0 ? runtimeBaseURL : this.baseURL;
 
@@ -108,7 +118,21 @@ export class DefaultUrlResolver implements UrlResolver {
       throw new ConfigError("Relative URL is not allowed without baseURL");
     }
 
-    const url = effectiveBaseURL ? joinUrl(effectiveBaseURL, req.url) : req.url;
+    let url = req.url;
+    if (effectiveBaseURL) {
+      try {
+        url = joinUrl(effectiveBaseURL, req.url);
+      } catch (error) {
+        if (typeof runtimeBaseURL === "string" && runtimeBaseURL.length > 0) {
+          throw getGatewayConfigError(
+            effectiveBaseURL,
+            typeof gatewayPrefix === "string" ? gatewayPrefix : undefined,
+            error,
+          );
+        }
+        throw new ConfigError(`Invalid baseURL "${effectiveBaseURL}"`, error);
+      }
+    }
 
     if (req.query && this.querySerializer) {
       return this.querySerializer(req.query, url);

@@ -347,6 +347,26 @@ describe("URL routing resolvers", () => {
     );
   });
 
+  it("throws ConfigError with gateway context when matched gateway baseURL is invalid", async () => {
+    const client = new RequestClient({
+      urlResolver: chainUrlResolvers(
+        createGatewayUrlResolver({
+          "/AuthorityAPI": "AuthorityAPI",
+        }),
+        new DefaultUrlResolver("https://fallback.example.com/root"),
+      ),
+    });
+
+    await expect(client.fetch("/AuthorityAPI/User/Login")).rejects.toMatchObject({
+      name: "ConfigError",
+      message: expect.stringContaining('Invalid gateway baseURL "AuthorityAPI"'),
+    });
+
+    await expect(client.fetch("/AuthorityAPI/User/Login")).rejects.toMatchObject({
+      message: expect.stringContaining('prefix "/AuthorityAPI"'),
+    });
+  });
+
   it("keeps non-gateway relative paths on the default baseURL", async () => {
     const client = createUrlCapturingClient();
 
