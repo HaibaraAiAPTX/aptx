@@ -1,6 +1,6 @@
 {
   "name": "@aptx/api-plugin-auth",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Auth plugin for @aptx/api-core",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",

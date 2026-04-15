@@ -1,5 +1,12 @@
 # @aptx/api-plugin-auth
 
+## 0.1.7
+
+### Patch Changes
+
+- Updated dependencies
+  - @aptx/api-core@0.1.5
+
 ## 0.1.6
 
 ### Patch Changes

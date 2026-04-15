@@ -1,5 +1,11 @@
 # @aptx/api-core
 
+## 0.1.5
+
+### Patch Changes
+
+- 新增非法 URL 的警告配置
+
 ## 0.1.4
 
 ### Patch Changes

@@ -1,6 +1,6 @@
 {
   "name": "@aptx/api-query-vue",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Vue Query thin adapter for @aptx/api-query-adapter",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
