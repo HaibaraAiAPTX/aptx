@@ -31,6 +31,7 @@ const res = await client.fetch<{ items: unknown[] }>("/users", {
 - `Request` / `Response` / `Context`
 - Middleware pipeline (`use`)
 - Plugin registry (`apply`)
+- Composable URL resolvers for gateway routing and baseURL resolution
 - Default components:
   - `FetchTransport`
   - `DefaultUrlResolver`
@@ -38,6 +39,28 @@ const res = await client.fetch<{ items: unknown[] }>("/users", {
   - `DefaultResponseDecoder`
   - `DefaultErrorMapper`
   - `SimpleEventBus`
+
+## Gateway Routing
+
+```ts
+import {
+  RequestClient,
+  DefaultUrlResolver,
+  chainUrlResolvers,
+  createGatewayUrlResolver,
+} from "@aptx/api-core";
+
+const client = new RequestClient({
+  urlResolver: chainUrlResolvers(
+    createGatewayUrlResolver({
+      "/AuthorityAPI": "https://authority.example.com/root",
+    }),
+    new DefaultUrlResolver("https://fallback.example.com/root"),
+  ),
+});
+```
+
+Use URL resolvers, not middleware, for prefix-based gateway selection.
 
 ## Test
 

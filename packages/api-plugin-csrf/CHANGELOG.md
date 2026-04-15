@@ -1,5 +1,12 @@
 # @aptx/api-plugin-csrf
 
+## 0.1.4
+
+### Patch Changes
+
+- Updated dependencies
+  - @aptx/api-core@0.1.4
+
 ## 0.1.3
 
 ### Patch Changes

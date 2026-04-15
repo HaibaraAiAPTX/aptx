@@ -1,6 +1,6 @@
 {
   "name": "@aptx/api-plugin-csrf",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "CSRF plugin for @aptx/api-core",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",

@@ -47,8 +47,8 @@
 
 ## 三、扩展机制（Extension Mechanism）
 
-### 1) Middleware 是唯一扩展入口
-所有能力增强应通过 Middleware 注入，业务系统不得修改 core：
+### 1) Middleware 是横切能力扩展入口
+所有横切能力应通过 Middleware 注入，业务系统不得修改 core：
 
 - 认证（token refresh）
 - 重试（策略、退避）
@@ -59,11 +59,21 @@
 - 认证：在 request 阶段注入头；在 error 阶段处理 401 并刷新。
 - 重试：使用官方插件 `@aptx/api-plugin-retry`（推荐），或自定义 middleware。
 
+### 1.1) URL 路由与网关选择应通过 UrlResolver 扩展
+凡是“根据相对路径、命名空间、前缀选择网关或 baseURL”的能力，归属于 URL 解析阶段，不应依赖 middleware 在 URL 已固化后再改写。
+
+**推荐实践**
+- 使用可组合的 `UrlResolver`，先做网关选择，再执行默认 `baseURL` 解析。
+- 网关选择 resolver 只负责决定本次请求使用哪个 baseURL。
+- 最终绝对 URL 仍由默认 resolver 统一产出，保证 query/base path 语义一致。
+- 绝对 URL 请求应直接透传，不参与网关匹配。
+
 ### 2) 插件协议（Plugin）
 业务系统可将一组中间件打包为插件：
 
 - 插件仅通过 `registry` 注册，不直接访问内部状态。
 - 插件应保持无状态或仅使用 `Context.bag`。
+- 若插件需要自定义 URL 路由，应通过 `registry.setUrlResolver()` 注入 resolver，而不是注册一个“前置改 URL”的 middleware。
 
 ---
 

@@ -1,5 +1,11 @@
 # @aptx/api-core
 
+## 0.1.4
+
+### Patch Changes
+
+- 修改 urlResolve，新增链机制
+
 ## 0.1.3
 
 ### Patch Changes

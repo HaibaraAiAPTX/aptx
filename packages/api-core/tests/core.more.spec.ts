@@ -7,7 +7,7 @@ import { SimpleEventBus } from "../src/defaults/eventBus";
 import { DefaultErrorMapper } from "../src/defaults/errorMapper";
 import { DefaultResponseDecoder } from "../src/defaults/responseDecoder";
 import { DefaultBodySerializer } from "../src/defaults/bodySerializer";
-import { DefaultUrlResolver } from "../src/defaults/urlResolver";
+import { DefaultUrlResolver, chainUrlResolvers, createGatewayUrlResolver } from "../src/defaults/urlResolver";
 import { FetchTransport } from "../src/defaults/fetchTransport";
 import { RequestClient } from "../src/client";
 import { TIMEOUT_BAG_KEY, createBagKey, assertBagKey } from "../src/types";
@@ -291,6 +291,76 @@ describe("RequestClient without retry", () => {
 
     await expect(client.fetch("https://example.com")).rejects.toThrow("Network error");
     expect(count).toBe(1);
+  });
+});
+
+describe("URL routing resolvers", () => {
+  function createUrlCapturingClient() {
+    return new RequestClient({
+      urlResolver: chainUrlResolvers(
+        createGatewayUrlResolver({
+          "/AuthorityAPI": "https://authority.example.com/gateway",
+        }),
+        new DefaultUrlResolver("https://fallback.example.com/root"),
+      ),
+      transport: {
+        async send(req) {
+          return {
+            status: 200,
+            headers: new Headers(),
+            url: req.url,
+            raw: new Response(JSON.stringify({ url: req.url }), { status: 200 }),
+          };
+        },
+      },
+      decoder: {
+        async decode<T = unknown>(req) {
+          return new CoreResponse<T>({
+            status: 200,
+            headers: new Headers(),
+            url: req.url,
+            data: { url: req.url } as T,
+            raw: {},
+          });
+        },
+      },
+    });
+  }
+
+  it("routes AuthorityAPI relative paths to the authority gateway", async () => {
+    const client = createUrlCapturingClient();
+
+    const res = await client.fetch<{ url: string }>("/AuthorityAPI/User/Login");
+
+    expect(res.data?.url).toBe("https://authority.example.com/gateway/AuthorityAPI/User/Login");
+  });
+
+  it("does not let fallback baseURL with path prefix swallow gateway routing", async () => {
+    const client = createUrlCapturingClient();
+
+    const res = await client.fetch<{ url: string }>("/AuthorityAPI/User/Login", {
+      query: { from: "test" },
+    });
+
+    expect(res.data?.url).toBe(
+      "https://authority.example.com/gateway/AuthorityAPI/User/Login?from=test",
+    );
+  });
+
+  it("keeps non-gateway relative paths on the default baseURL", async () => {
+    const client = createUrlCapturingClient();
+
+    const res = await client.fetch<{ url: string }>("/User/Profile");
+
+    expect(res.data?.url).toBe("https://fallback.example.com/root/User/Profile");
+  });
+
+  it("preserves existing absolute URL behavior", async () => {
+    const client = createUrlCapturingClient();
+
+    const res = await client.fetch<{ url: string }>("https://direct.example.com/AuthorityAPI/User/Login");
+
+    expect(res.data?.url).toBe("https://direct.example.com/AuthorityAPI/User/Login");
   });
 });
 
